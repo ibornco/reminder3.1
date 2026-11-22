@@ -11,8 +11,8 @@ android {
         applicationId = "com.iborn.reminder.preview"
         minSdk = 26
         targetSdk = 34
-        versionCode = 16
-        versionName = "3.1.0"
+        versionCode = 17
+        versionName = "3.0.2"
     }
 
     compileOptions {
