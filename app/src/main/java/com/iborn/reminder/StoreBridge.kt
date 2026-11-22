@@ -4,10 +4,10 @@ import android.app.Activity
 import android.util.Base64
 import android.webkit.JavascriptInterface
 import org.json.JSONObject
-import org.json.JSONArray
 import java.net.HttpURLConnection
 import java.net.URL
 import java.time.LocalDate
+import java.util.regex.Pattern
 import java.util.concurrent.Executors
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -63,37 +63,63 @@ class StoreBridge(private val activity: Activity, private val emit: (String) -> 
         activity.runOnUiThread { emit("window.onStoreLoggedOut && window.onStoreLoggedOut()") }
     }
 
+    /** Executes only explicitly supported store actions; authorization is enforced again by the API. */
+    @JavascriptInterface fun apiCall(requestId: String, method: String, path: String, bodyJson: String) {
+        val safeMethod = method.uppercase()
+        if (!isAllowedAction(safeMethod, path)) {
+            emitApiResult(requestId, false, JSONObject().put("message", "این عملیات در برنامه مجاز نیست."))
+            return
+        }
+        val token = readToken()
+        if (token == null) {
+            emitApiResult(requestId, false, JSONObject().put("unauthorized", true).put("message", "نشست معتبر نیست."))
+            return
+        }
+        executor.execute {
+            try {
+                val body = if (bodyJson.isBlank()) null else JSONObject(bodyJson)
+                val result = request(path, safeMethod, body, token)
+                emitApiResult(requestId, true, result)
+            } catch (e: Exception) {
+                val unauthorized = e.message?.contains("HTTP 401") == true
+                if (unauthorized) clearToken()
+                emitApiResult(requestId, false, JSONObject().put("unauthorized", unauthorized).put("message", safeMessage(e)))
+            }
+        }
+    }
+
+    private fun isAllowedAction(method: String, path: String): Boolean {
+        if (path.contains("..") || path.contains("\\") || path.contains("#")) return false
+        val rules = listOf(
+            "GET" to "/(stock-adjustments|price-reports|staff)",
+            "POST" to "/(stock-adjustments|price-reports|staff|products|tasks|tasks/[0-9]+/(complete|note))",
+            "PATCH" to "/(price-reports/[0-9]+|products/[0-9]+|tasks/[0-9]+|batches/[0-9]+)",
+            "DELETE" to "/(products/[0-9]+|tasks/[0-9]+|shifts/[0-9]+|staff/[0-9]+)",
+            "PUT" to "/shifts"
+        )
+        return rules.any { it.first == method && Pattern.matches(it.second, path.substringBefore('?')) }
+    }
+
+    private fun emitApiResult(requestId: String, ok: Boolean, payload: JSONObject) {
+        val script = "window.onStoreApiResult && window.onStoreApiResult(${JSONObject.quote(requestId)}, $ok, JSON.parse(${JSONObject.quote(payload.toString())}))"
+        activity.runOnUiThread { emit(script) }
+    }
+
     private fun loadPayload(token: String): JSONObject {
         val today = LocalDate.now()
         val from = today.minusDays(7).toString()
-        val to = today.plusDays(90).toString()
+        val to = today.plusDays(365).toString()
         val me = request("/me", "GET", null, token)
         val products = request("/products", "GET", null, token)
-        val shiftsRaw = request("/shifts?from=$from&to=$to", "GET", null, token)
+        val shifts = request("/shifts?from=$from&to=$to", "GET", null, token)
         val tasks = request("/tasks?from=$from&to=$to", "GET", null, token)
-        val permissions = me.optJSONObject("permissions") ?: JSONObject()
-        val profile = me.optJSONObject("profile") ?: JSONObject()
-        val isManager = permissions.optBoolean("manage_staff", false)
-        // The current API returns all shift memberships. For staff, expose only their own shifts/membership.
-        val shifts = if (isManager) shiftsRaw else {
-            val ownId = profile.optInt("id", -1)
-            val ownShifts = JSONArray()
-            val allShifts = shiftsRaw.optJSONArray("shifts") ?: JSONArray()
-            for (i in 0 until allShifts.length()) {
-                val shift = allShifts.optJSONObject(i) ?: continue
-                val members = shift.optJSONArray("members") ?: JSONArray()
-                val ownMembers = JSONArray()
-                for (j in 0 until members.length()) {
-                    val member = members.optJSONObject(j) ?: continue
-                    if (member.optInt("id", -2) == ownId) ownMembers.put(member)
-                }
-                if (ownMembers.length() > 0) ownShifts.put(JSONObject(shift.toString()).put("members", ownMembers))
-            }
-            JSONObject().put("shifts", ownShifts)
-        }
-        // Staff directory is a manager-only GET endpoint; never request it for staff accounts.
-        val staff = if (isManager) request("/staff", "GET", null, token) else JSONObject()
-        return JSONObject().put("me", me).put("products", products).put("shifts", shifts).put("tasks", tasks).put("staff", staff)
+        val ledger = request("/stock-adjustments", "GET", null, token)
+        val prices = request("/price-reports", "GET", null, token)
+        val role = me.optJSONObject("profile")?.optString("role") ?: "staff"
+        val payload = JSONObject().put("me", me).put("products", products).put("shifts", shifts)
+            .put("tasks", tasks).put("ledger", ledger).put("prices", prices)
+        if (role == "manager") payload.put("staff", request("/staff", "GET", null, token))
+        return payload
     }
 
     private fun request(path: String, method: String, body: JSONObject?, token: String?): JSONObject {
