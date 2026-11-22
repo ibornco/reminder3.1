@@ -1,0 +1,25 @@
+workflows:
+  android-apk:
+    name: Reminder Android APK
+    max_build_duration: 60
+    environment:
+      java: 17
+    scripts:
+      - name: Verify Android build tools
+        script: |
+          set -euo pipefail
+          java -version
+          command -v gradle
+          gradle --version
+      - name: Build installable signed debug APK
+        script: |
+          set -euo pipefail
+          gradle --no-daemon --stacktrace clean assembleDebug
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          mkdir -p build/outputs/apk/debug
+          cp "$APK" "build/outputs/apk/debug/Reminder-WebView-Preview.apk"
+          echo "APK created: build/outputs/apk/debug/Reminder-WebView-Preview.apk"
+    artifacts:
+      - app/build/outputs/apk/debug/*.apk
+      - build/outputs/apk/debug/Reminder-WebView-Preview.apk
