@@ -26,7 +26,7 @@ class UpdateBridge(
     private val emit: (String) -> Unit
 ) {
     private val executor = Executors.newSingleThreadExecutor()
-    private val repoApi = "https://api.github.com/repos/ibornco/reminder3.0/releases/latest"
+    private val repoApi = "https://api.github.com/repos/ibornco/reminder3.1/releases/latest"
     private var latestApkUrl: String? = null
     private var downloadId: Long = -1L
 
