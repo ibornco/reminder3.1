@@ -319,6 +319,19 @@ button:focus-visible,[onclick]:focus-visible{outline:2px solid var(--mint);outli
 .modal-backdrop{position:fixed;inset:0;background:#000b;z-index:50;display:none;align-items:flex-end;justify-content:center;padding:14px}.modal-backdrop.show{display:flex}.modal{width:min(100%,460px);max-height:88dvh;overflow:auto;background:linear-gradient(145deg,#26372e,#111a16);border:1px solid #58705d;border-radius:23px;padding:18px;box-shadow:0 18px 60px #000b;animation:pageIn .2s ease}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.modal-head b{font-size:15px}.modal-close{border:0;background:#34483a;color:#fff;border-radius:10px;padding:7px 10px;font-size:16px}.empty-state{padding:18px;text-align:center;color:#8f9e94;font-size:11px;line-height:2;border:1px dashed #3c5044;border-radius:15px}.kpi-line{display:flex;justify-content:space-between;gap:10px;font-size:11px;padding:9px 0;border-bottom:1px solid #ffffff12}.kpi-line:last-child{border:0}.tag{font-size:9px;border-radius:8px;padding:5px 8px;background:#294031;color:var(--mint)}
 body.light{--bg:#f1f5f1;--panel:#fff;--panel2:#e8eee9;--text:#1b2920;--muted:#647269;--line:#d4dfd6;background:#edf2ed;color:#1b2920}body.light .app{background:linear-gradient(160deg,#f5faf5,#e7efe8 70%,#f4f7f4)}body.light .card,body.light .rowcard,body.light .setting-group,body.light .data-card{background:linear-gradient(145deg,#fff,#edf3ee);border-color:#d5e0d7;box-shadow:3px 5px 12px #9aab9d35}body.light .data-card b,body.light .rowcard b{color:#1b2920}body.light .field input,body.light .field select,body.light .field textarea{background:#fff;color:#17231b;border-color:#c7d5ca}
 
+
+/* SERVER LOGIN */
+.login-screen{display:none;min-height:100dvh;padding:28px 20px 40px;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 10%,#294735 0,transparent 45%),linear-gradient(160deg,#111b18,#0a1110 70%,#101917)}
+.login-card{width:min(100%,390px);margin:auto;padding:25px 21px;border-radius:26px;background:linear-gradient(145deg,#293831,#151f1c);border:1px solid #526c58;box-shadow:9px 13px 28px #030806,inset 1px 1px 4px #ffffff20;text-align:right}
+.login-mark{width:62px;height:62px;border-radius:20px;display:grid;place-items:center;margin:0 auto 18px;background:linear-gradient(145deg,#526e57,#1c3022);border:1px solid #6b896b;color:var(--mint);font-size:28px;box-shadow:5px 7px 14px #030806}
+.login-card h1{text-align:center;font-size:22px;margin:0 0 7px}.login-card .desc{text-align:center;margin-bottom:20px}
+.login-card .field input{padding:15px}.login-error{display:none;color:#ffaaaa;background:#48252e;border:1px solid #783442;border-radius:12px;padding:10px;font-size:10px;line-height:1.8;margin:10px 0}
+.login-hint{text-align:center;color:var(--muted);font-size:9px;line-height:1.9;margin-top:15px}
+.app.auth-locked>.header,.app.auth-locked>.content,.app.auth-locked>.main-nav{display:none}
+.app.auth-locked>.login-screen{display:flex}
+.readonly-note{font-size:10px;line-height:1.9;color:#b9c9bd;background:#1c2b22;border:1px solid #3d5943;border-radius:13px;padding:11px;margin:10px 0}
+.server-meta{font-size:10px;color:var(--muted);line-height:1.9}
+
 </style>
 </head>
 <body>
@@ -331,6 +344,20 @@ body.light{--bg:#f1f5f1;--panel:#fff;--panel2:#e8eee9;--text:#1b2920;--muted:#64
  </div>
  <div class="header-avatar">✦</div>
 </header>
+
+
+<section class="login-screen" id="loginScreen">
+ <div class="login-card">
+  <div class="login-mark">✦</div>
+  <h1>ورود به Reminder</h1>
+  <div class="desc">برای دریافت اطلاعات فروشگاه، وارد حساب کاربری خود شوید.</div>
+  <div class="field"><label for="loginUsername">نام کاربری</label><input id="loginUsername" autocomplete="username" placeholder="نام کاربری خود را وارد کنید"></div>
+  <div class="field"><label for="loginPassword">رمز عبور</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="رمز عبور"></div>
+  <div class="login-error" id="loginError"></div>
+  <button class="btn" id="loginButton" style="width:100%" onclick="submitLogin()">ورود به حساب</button>
+  <div class="login-hint">نشست ورود روی همین دستگاه به‌صورت امن نگهداری می‌شود.<br>اطلاعات فروشگاه فقط از سرور خوانده می‌شود.</div>
+ </div>
+</section>
 
 <main class="content">
 
@@ -407,8 +434,8 @@ body.light{--bg:#f1f5f1;--panel:#fff;--panel2:#e8eee9;--text:#1b2920;--muted:#64
  <div class="stat-grid">
   <div class="card stat"><div class="symbol">📦</div><strong id="statProducts">۰</strong><small>محصول ثبت‌شده</small></div>
   <div class="card stat"><div class="symbol">⚠️</div><strong id="statAlerts" style="color:var(--orange)">۰</strong><small>محصول نیازمند بررسی</small></div>
-  <div class="card stat"><div class="symbol">🏷️</div><strong id="statPrices">۰</strong><small>مغایرت قیمت باز</small></div>
-  <div class="card stat"><div class="symbol">📅</div><strong id="statLots">۰</strong><small>سری انقضای ثبت‌شده</small></div>
+  <div class="card stat"><div class="symbol">🏷️</div><strong id="statPrices">۰</strong><small>وظایف فروشگاه</small></div>
+  <div class="card stat"><div class="symbol">📅</div><strong id="statLots">۰</strong><small>شیفت‌های ثبت‌شده</small></div>
  </div>
  <div class="section-title">آمار شخصی <small>نمای کلی</small></div>
  <div class="stat-grid">
@@ -421,25 +448,17 @@ body.light{--bg:#f1f5f1;--panel:#fff;--panel2:#e8eee9;--text:#1b2920;--muted:#64
 
 <!-- STORE -->
 <section class="page" id="store">
- <h2>مدیریت فروشگاه</h2>
- <div class="desc">مرکز کنترل محصولات، انقضا و گزارش‌های فروشگاه</div>
- <div class="store-head">
-  <h3>Store Center</h3>
-  <p>تمام ابزارهای مدیریتی فروشگاه در یک محیط یکپارچه و حرفه‌ای</p>
- </div>
- <div class="section-title">مدیریت محصولات</div>
+ <h2>مدیریت فروشگاه</h2><div class="desc">مرکز مشاهده اطلاعات فروشگاه از سرور</div>
+ <div class="store-head"><h3>Store Center</h3><p>اطلاعات این بخش به‌صورت فقط‌خواندنی از سرور دریافت می‌شود.</p></div>
+ <div class="readonly-note">هیچ ثبت، ویرایش یا حذفی از این برنامه به سرور ارسال نمی‌شود.</div>
+ <div class="section-title">اطلاعات سرور</div>
  <div class="store-grid">
-  <div class="store-card" onclick="go('products')"><div class="arrow">↖</div><div class="ico">📦</div><b>بانک محصولات</b><small>محصولات پایه و اطلاعات کالاها</small></div>
-  <div class="store-card" onclick="go('newlot')"><div class="arrow">↖</div><div class="ico">＋</div><b>ثبت انقضای جدید</b><small>ثبت سری جدید و تعداد محصول</small></div>
-  <div class="store-card" onclick="go('calendar')"><div class="arrow">↖</div><div class="ico">🗓️</div><b>تقویم انقضا</b><small>مشاهده تاریخ‌های حساس و معتبر</small></div>
-  <div class="store-card" onclick="go('ledger')"><div class="arrow">↖</div><div class="ico">⚖️</div><b>فیره و اضافه</b><small>حساب مستقل هر محصول</small></div>
-  <div class="store-card" onclick="go('price')"><div class="arrow">↖</div><div class="ico">🏷️</div><b>مغایرت قیمت</b><small>گزارش اختلاف قیمت قفسه و صندوق</small></div>
-  <div class="store-card" onclick="go('history')"><div class="arrow">↖</div><div class="ico">📚</div><b>تاریخچه</b><small>سوابق ثبت و تغییرات</small></div>
+  <div class="store-card" onclick="go('products')"><div class="arrow">↖</div><div class="ico">📦</div><b>بانک محصولات</b><small>مشاهده محصولات و دسته‌بندی‌ها</small></div>
+  <div class="store-card" onclick="go('calendar')"><div class="arrow">↖</div><div class="ico">🗓️</div><b>تقویم انقضا</b><small>مشاهده سری‌ها و تاریخ انقضا</small></div>
+  <div class="store-card" onclick="go('serverTasks')"><div class="arrow">↖</div><div class="ico">📝</div><b>وظایف فروشگاه</b><small>وظایف مجاز برای حساب شما</small></div>
+  <div class="store-card" onclick="go('serverShifts')"><div class="arrow">↖</div><div class="ico">🕒</div><b>شیفت‌ها</b><small>برنامه شیفت‌های ثبت‌شده</small></div>
  </div>
- <div class="store-alert">
-  <div><b>نیازمند توجه فوری</b><small>محصولاتی که باید بررسی شوند</small></div>
-  <strong>۴ مورد</strong>
- </div>
+ <div class="store-alert"><div><b>وضعیت همگام‌سازی</b><small id="serverSyncText">برای دریافت آخرین اطلاعات، تازه‌سازی کنید</small></div><button class="btn small" onclick="refreshServerData()">↻ تازه‌سازی</button></div>
 </section>
 
 <!-- SETTINGS -->
@@ -474,55 +493,25 @@ body.light{--bg:#f1f5f1;--panel:#fff;--panel2:#e8eee9;--text:#1b2920;--muted:#64
 <!-- STORE SUBPAGES -->
 <section class="page" id="products">
  <button class="back" onclick="go('store')">← بازگشت به فروشگاه</button>
- <h2>بانک محصولات</h2><div class="desc">ثبت و مدیریت محصولات پایه فروشگاه</div>
+ <h2>بانک محصولات</h2><div class="desc">نمایش اطلاعات دریافتی از سرور فروشگاه</div>
  <div class="field"><label>جست‌وجوی محصول</label><input id="productSearch" placeholder="نام یا کد محصول..."></div>
- <div class="btn-row"><button class="btn" onclick="openProductForm()">＋ افزودن محصول</button></div>
+ <div class="readonly-note">اطلاعات محصولات از سرور دریافت می‌شود و در این برنامه قابل ثبت یا ویرایش نیست.</div>
  <div id="productsList" class="data-list"></div>
 </section>
-<section class="page" id="newlot">
- <button class="back" onclick="go('store')">← بازگشت به فروشگاه</button>
- <h2>ثبت انقضای جدید</h2><div class="desc">ثبت سری محصول با تاریخ و تعداد</div>
- <div class="card" style="padding:15px">
-  <div class="field"><label>محصول</label><select id="lotProduct"></select></div>
-  <div class="field"><label>تاریخ انقضا (شمسی؛ نمونه ۱۴۰۵/۰۹/۱۵)</label><input id="lotDate" placeholder="۱۴۰۵/۰۹/۱۵" inputmode="numeric"></div>
-  <div class="field"><label>تعداد</label><input id="lotQty" type="number" min="1" placeholder="تعداد موجودی"></div>
-  <button class="btn" style="width:100%" onclick="saveLot()">ثبت سری جدید</button>
- </div>
- <div class="section-title">سری‌های ثبت‌شده</div><div id="lotsList" class="data-list"></div>
-</section>
+<section class="page" id="newlot"><button class="back" onclick="go('store')">← بازگشت به فروشگاه</button><h2>سری‌های انقضا</h2><div class="desc">فهرست سری‌های دریافت‌شده از سرور</div><div class="readonly-note">ثبت یا تغییر سری انقضا از این برنامه غیرفعال است.</div><div id="lotsList" class="data-list"></div></section>
 <section class="page" id="calendar">
  <button class="back" onclick="go('store')">← بازگشت به فروشگاه</button>
  <h2>تقویم انقضا</h2><div class="desc">نمایش سری‌های ثبت‌شده بر اساس تاریخ انقضا</div>
- <div class="field"><label>فیلتر ماه (شمسی)</label><input id="calendarMonth" placeholder="۱۴۰۵/۰۹" value="۱۴۰۵/۰۹"></div>
+ <div class="field"><label>جست‌وجوی ماه (شمسی)</label><input id="calendarMonth" placeholder="مثلاً ۱۴۰۵/۰۹"></div>
  <div id="calendarLots" class="data-list"></div>
 </section>
-<section class="page" id="ledger">
- <button class="back" onclick="go('store')">← بازگشت به فروشگاه</button>
- <h2>فیره و اضافه</h2><div class="desc">ثبت ورود و خروج و محاسبه مانده هر محصول</div>
- <div class="card" style="padding:15px">
-  <div class="field"><label>محصول</label><select id="ledgerProduct"></select></div>
-  <div class="field"><label>نوع عملیات</label><select id="ledgerType"><option value="plus">اضافه</option><option value="minus">فیره</option></select></div>
-  <div class="field"><label>تعداد</label><input id="ledgerQty" type="number" min="1" placeholder="تعداد"></div>
-  <div class="field"><label>توضیحات</label><input id="ledgerNote" placeholder="اختیاری"></div>
-  <button class="btn" onclick="saveLedger()">ثبت عملیات</button>
- </div>
- <div class="section-title">مانده حساب محصولات</div><div id="ledgerList" class="data-list"></div>
-</section>
-<section class="page" id="price">
- <button class="back" onclick="go('store')">← بازگشت به فروشگاه</button>
- <h2>مغایرت قیمت</h2><div class="desc">ثبت اختلاف قیمت قفسه و صندوق</div>
- <div class="card" style="padding:15px">
-  <div class="field"><label>محصول</label><select id="priceProduct"></select></div>
-  <div class="field"><label>قیمت قفسه</label><input id="shelfPrice" type="number" min="0"></div>
-  <div class="field"><label>قیمت صندوق</label><input id="cashPrice" type="number" min="0"></div>
-  <div class="field"><label>توضیحات</label><input id="priceNote" placeholder="اختیاری"></div>
-  <button class="btn" onclick="savePrice()">ثبت مغایرت</button>
- </div>
- <div class="section-title">گزارش‌های مغایرت</div><div id="priceList" class="data-list"></div>
-</section>
+<section class="page" id="serverTasks"><button class="back" onclick="go('store')">← بازگشت به فروشگاه</button><h2>وظایف فروشگاه</h2><div class="desc">وظایف قابل مشاهده برای حساب شما، دریافت‌شده از سرور</div><div id="serverTasksList" class="data-list"></div></section>
+<section class="page" id="serverShifts"><button class="back" onclick="go('store')">← بازگشت به فروشگاه</button><h2>برنامه شیفت‌ها</h2><div class="desc">شیفت‌های ثبت‌شده در بازه سه‌ماهه</div><div id="serverShiftsList" class="data-list"></div></section>
+<section class="page" id="ledger"><button class="back" onclick="go('store')">← بازگشت به فروشگاه</button><h2>فیره و اضافه</h2><div class="desc">این گزارش در API خواندنی فعلی ارائه نشده است.</div><div class="empty-state">در حال حاضر اطلاعاتی برای نمایش از سرور وجود ندارد.</div></section>
+<section class="page" id="price"><button class="back" onclick="go('store')">← بازگشت به فروشگاه</button><h2>مغایرت قیمت</h2><div class="desc">این گزارش در API خواندنی فعلی ارائه نشده است.</div><div class="empty-state">در حال حاضر اطلاعاتی برای نمایش از سرور وجود ندارد.</div></section>
 <section class="page" id="history">
  <button class="back" onclick="go('store')">← بازگشت به فروشگاه</button>
- <h2>تاریخچه فروشگاه</h2><div class="desc">سوابق ثبت، ویرایش و حذف اطلاعات</div>
+ <h2>تاریخچه محلی</h2><div class="desc">رویدادهای محلی برنامه؛ تاریخچه سرور در API فعلی ارائه نشده است.</div>
  <div id="historyList" class="data-list"></div>
 </section>
 
@@ -560,12 +549,23 @@ const todayISO=()=>new Date().toISOString().slice(0,10);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const blankDB=()=>({products:[],lots:[],ledger:[],prices:[],reminders:[],tasks:[],goals:[],history:[],profile:{name:'عباس',role:'مدیر سیستم',workplace:'',phone:''},settings:{theme:'dark'}});
 let db=loadDB();
+let serverTasks=[],serverShifts=[],serverProfile=null,serverPermissions={};
+function showLogin(message=''){document.querySelector('.app').classList.add('auth-locked');const e=document.getElementById('loginError');if(e){e.textContent=message;e.style.display=message?'block':'none'}const b=document.getElementById('loginButton');if(b){b.disabled=false;b.textContent='ورود به حساب'} }
+function showApp(){document.querySelector('.app').classList.remove('auth-locked');const e=document.getElementById('loginError');if(e)e.style.display='none';}
+function submitLogin(){const u=document.getElementById('loginUsername').value.trim(),p=document.getElementById('loginPassword').value; if(!u||!p){showLogin('نام کاربری و رمز عبور را وارد کنید.');return}const b=document.getElementById('loginButton');b.disabled=true;b.textContent='در حال بررسی…';if(window.AndroidStore&&AndroidStore.login){AndroidStore.login(u,p)}else{b.disabled=false;b.textContent='ورود به حساب';showLogin('ورود فقط در نسخه اندروید متصل به سرور فعال است.')}}
+function refreshServerData(){if(window.AndroidStore&&AndroidStore.refresh){const x=document.getElementById('serverSyncText');if(x)x.textContent='در حال دریافت اطلاعات از سرور…';AndroidStore.refresh()}else{showLogin('پل ارتباطی سرور در دسترس نیست.')}}
+function persianDate(iso){if(!iso)return '—';const d=new Date(iso+'T12:00:00');if(Number.isNaN(d.getTime()))return iso;return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{year:'numeric',month:'2-digit',day:'2-digit'}).format(d).replace(/\u200e/g,'')}
+function applyServerData(payload){serverProfile=payload.me?.profile||payload.profile||null;serverPermissions=payload.me?.permissions||{};const raw=payload.products?.products||[];const products=new Map();const lots=[];raw.forEach(x=>{const id=String(x.id);if(!products.has(id))products.set(id,{id,name:x.name||'بدون نام',code:x.barcode||'',barcode:x.barcode||'',note:x.category||'',category:x.category||''});if(x.batch_id!==null&&x.batch_id!==undefined){lots.push({id:String(x.batch_id),productId:id,productName:x.name||'بدون نام',date:persianDate(x.expiry_date),isoDate:x.expiry_date||'',qty:Number(x.quantity||0),checkedQuantity:x.checked_quantity,checkedAt:x.checked_at,checkedBy:x.checked_by})}});db.products=[...products.values()];db.lots=lots;db.ledger=[];db.prices=[];serverTasks=payload.tasks?.tasks||[];serverShifts=payload.shifts?.shifts||[];if(serverProfile){db.profile.name=serverProfile.display_name||serverProfile.username||'کاربر';db.profile.role=serverProfile.role==='manager'?'مدیر':serverProfile.role==='staff'?'پرسنل':'کاربر';db.profile.phone='';db.profile.workplace='فروشگاه'}showApp();renderAll();const x=document.getElementById('serverSyncText');if(x)x.textContent='آخرین دریافت: '+new Date().toLocaleTimeString('fa-IR');}
+window.onStoreLoginResult=function(ok,payload){const b=document.getElementById('loginButton');if(!ok){if(b){b.disabled=false;b.textContent='ورود به حساب'}showLogin(payload?.message||'ورود ناموفق بود. اطلاعات حساب را بررسی کنید.');return}document.getElementById('loginPassword').value='';applyServerData(payload||{});};
+window.onStoreData=function(ok,payload){if(!ok){if(payload?.unauthorized){showLogin('نشست شما منقضی شده است. دوباره وارد شوید.');if(window.AndroidStore)AndroidStore.logout()}else{const x=document.getElementById('serverSyncText');if(x)x.textContent=payload?.message||'دریافت اطلاعات ناموفق بود';}return}applyServerData(payload||{});};
+window.onStoreLoggedOut=function(){db.products=[];db.lots=[];serverTasks=[];serverShifts=[];serverProfile=null;showLogin('از حساب خارج شدید. برای ادامه دوباره وارد شوید.');};
+
 function loadDB(){try{return {...blankDB(),...JSON.parse(localStorage.getItem(DB_KEY)||'{}')}}catch(e){return blankDB()}}
-function saveDB(){localStorage.setItem(DB_KEY,JSON.stringify(db));renderAll()}
+function saveDB(){const localOnly={reminders:db.reminders,tasks:db.tasks,goals:db.goals,history:db.history,profile:db.profile,settings:db.settings};localStorage.setItem(DB_KEY,JSON.stringify(localOnly));renderAll()}
 function log(action,detail){db.history.unshift({id:uid(),action,detail,date:new Date().toLocaleString('fa-IR')});db.history=db.history.slice(0,250)}
 function fa(n){return String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d])}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function go(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));const target=document.getElementById(id);if(!target)return;target.classList.add('active');document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));if(btn&&btn.classList.contains('nav-btn'))btn.classList.add('active');else{const index={profile:0,personal:1,home:2,store:3,settings:4,products:3,newlot:3,calendar:3,ledger:3,price:3,history:3}[id];document.querySelectorAll('.nav-btn')[index]?.classList.add('active')}window.scrollTo({top:0,behavior:'smooth'});renderAll()}
+function go(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));const target=document.getElementById(id);if(!target)return;target.classList.add('active');document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));if(btn&&btn.classList.contains('nav-btn'))btn.classList.add('active');else{const index={profile:0,personal:1,home:2,store:3,settings:4,products:3,newlot:3,calendar:3,ledger:3,price:3,history:3,serverTasks:3,serverShifts:3}[id];document.querySelectorAll('.nav-btn')[index]?.classList.add('active')}window.scrollTo({top:0,behavior:'smooth'});renderAll()}
 function openModal(title,html){document.getElementById('modalTitle').textContent=title;document.getElementById('modalBody').innerHTML=html;document.getElementById('modalBackdrop').classList.add('show')}
 function closeModal(){document.getElementById('modalBackdrop').classList.remove('show')}
 function field(label,name,value='',type='text',extra=''){return `<div class="field"><label>${label}</label><input name="${name}" type="${type}" value="${esc(value)}" ${extra}></div>`}
@@ -578,12 +578,17 @@ function removeItem(type,id){if(type==='products'&&(db.lots.some(x=>x.productId=
 function saveLot(){const product=db.products.find(p=>p.id===document.getElementById('lotProduct').value),date=document.getElementById('lotDate').value.trim(),qty=Number(document.getElementById('lotQty').value);if(!product){alert('ابتدا یک محصول انتخاب یا ثبت کنید.');return}if(!/^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/.test(date)){alert('تاریخ را به شکل ۱۴۰۵/۰۹/۱۵ وارد کنید.');return}if(!Number.isInteger(qty)||qty<1){alert('تعداد باید عدد صحیح و بیشتر از صفر باشد.');return}db.lots.push({id:uid(),productId:product.id,productName:product.name,date:date.replaceAll('-','/'),qty});log('ثبت سری انقضا',product.name+' · '+date);document.getElementById('lotDate').value='';document.getElementById('lotQty').value='';saveDB()}
 function saveLedger(){const product=db.products.find(p=>p.id===document.getElementById('ledgerProduct').value),type=document.getElementById('ledgerType').value,qty=Number(document.getElementById('ledgerQty').value),note=document.getElementById('ledgerNote').value.trim();if(!product||!Number.isInteger(qty)||qty<1){alert('محصول و تعداد معتبر وارد کنید.');return}db.ledger.push({id:uid(),productId:product.id,productName:product.name,type,qty,note,date:new Date().toLocaleString('fa-IR')});log(type==='plus'?'ثبت اضافه':'ثبت فیره',product.name+' · '+qty);document.getElementById('ledgerQty').value='';document.getElementById('ledgerNote').value='';saveDB()}
 function savePrice(){const p=db.products.find(x=>x.id===document.getElementById('priceProduct').value),s=Number(document.getElementById('shelfPrice').value),c=Number(document.getElementById('cashPrice').value),note=document.getElementById('priceNote').value.trim();if(!p||!Number.isFinite(s)||!Number.isFinite(c)||s<0||c<0||s===c){alert('محصول و دو قیمت متفاوت و معتبر وارد کنید.');return}db.prices.unshift({id:uid(),productId:p.id,productName:p.name,shelf:s,cash:c,diff:c-s,note,status:'باز',date:new Date().toLocaleString('fa-IR')});log('ثبت مغایرت قیمت',p.name+' · اختلاف '+(c-s));saveDB()}
-function renderProducts(){const q=(document.getElementById('productSearch')?.value||'').toLowerCase();const el=document.getElementById('productsList');if(!el)return;const items=db.products.filter(p=>(p.name+' '+p.code).toLowerCase().includes(q));el.innerHTML=items.length?items.map(p=>`<div class="data-card"><div class="main"><b>${esc(p.name)}</b><small>کد: ${esc(p.code||'—')} · ${esc(p.note||'بدون توضیحات')}</small></div><div class="actions"><button class="icon-btn" onclick="openProductForm('${p.id}')">ویرایش</button><button class="icon-btn danger" onclick="removeItem('products','${p.id}')">حذف</button></div></div>`).join(''):empty('محصولی ثبت نشده است. از دکمه افزودن محصول استفاده کنید.')}
-function renderLots(){const el=document.getElementById('lotsList');if(!el)return;el.innerHTML=db.lots.length?db.lots.slice().reverse().map(l=>`<div class="data-card"><div class="main"><b>${esc(l.productName)}</b><small>انقضا: ${esc(l.date)} · تعداد: ${fa(l.qty)}</small></div><button class="icon-btn danger" onclick="removeItem('lots','${l.id}')">حذف</button></div>`).join(''):empty('هنوز سری انقضایی ثبت نشده است.');const sel=document.getElementById('lotProduct');if(sel)sel.innerHTML=productOptions(sel.value)}
-function renderLedger(){const el=document.getElementById('ledgerList');if(!el)return;const sums={};db.products.forEach(p=>sums[p.id]={p,plus:0,minus:0});db.ledger.forEach(x=>{if(sums[x.productId])sums[x.productId][x.type]+=x.qty});const rows=Object.values(sums);el.innerHTML=rows.length?rows.map(x=>`<div class="data-card"><div class="main"><b>${esc(x.p.name)}</b><small>اضافه: ${fa(x.plus)} · فیره: ${fa(x.minus)}</small></div><strong style="color:${x.plus-x.minus>=0?'var(--mint)':'var(--red)'}">${fa(x.plus-x.minus)}</strong></div>`).join(''):empty('برای نمایش دفتر، ابتدا محصول ثبت کنید.');const sel=document.getElementById('ledgerProduct');if(sel)sel.innerHTML=productOptions(sel.value)}
-function renderPrices(){const el=document.getElementById('priceList');if(!el)return;el.innerHTML=db.prices.length?db.prices.map(x=>`<div class="data-card"><div class="main"><b>${esc(x.productName)}</b><small>قفسه: ${fa(x.shelf)} · صندوق: ${fa(x.cash)} · اختلاف: <b style="color:var(--orange)">${fa(x.diff)}</b><br>${esc(x.date)} ${x.note?'· '+esc(x.note):''}</small><span class="tag">${x.status}</span></div><div class="actions"><button class="icon-btn" onclick="closePrice('${x.id}')">بستن</button><button class="icon-btn danger" onclick="removeItem('prices','${x.id}')">حذف</button></div></div>`).join(''):empty('گزارش مغایرتی ثبت نشده است.');const sel=document.getElementById('priceProduct');if(sel)sel.innerHTML=productOptions(sel.value)}
-function closePrice(id){const x=db.prices.find(x=>x.id===id);if(x){x.status=x.status==='باز'?'بسته':'باز';log('تغییر وضعیت مغایرت',x.productName);saveDB()}}
+function renderProducts(){const q=(document.getElementById('productSearch')?.value||'').toLowerCase();const el=document.getElementById('productsList');if(!el)return;const items=db.products.filter(p=>(p.name+' '+p.code+' '+p.category).toLowerCase().includes(q));el.innerHTML=items.length?items.map(p=>`<div class="data-card"><div class="main"><b>${esc(p.name)}</b><small>بارکد: ${esc(p.code||'—')} · دسته‌بندی: ${esc(p.category||'—')}</small></div><span class="tag">فقط‌خواندنی</span></div>`).join(''):empty('محصولی از سرور دریافت نشده است. اتصال را تازه‌سازی کنید.')}
+
+function renderLots(){const el=document.getElementById('lotsList');if(!el)return;el.innerHTML=db.lots.length?db.lots.slice().sort((a,b)=>(a.isoDate||'').localeCompare(b.isoDate||'')).map(l=>`<div class="data-card"><div class="main"><b>${esc(l.productName)}</b><small>انقضا: ${esc(l.date)} · تعداد: ${fa(l.qty)}${l.checkedQuantity!==null&&l.checkedQuantity!==undefined?' · شمارش‌شده: '+fa(l.checkedQuantity):''}</small></div><span class="tag">سرور</span></div>`).join(''):empty('سری انقضایی از سرور دریافت نشده است.')}
+
+function renderLedger(){const el=document.getElementById('ledgerList');if(el)el.innerHTML=empty('گزارش فیره و اضافه در API فعلی وجود ندارد.')}
+function renderPrices(){const el=document.getElementById('priceList');if(el)el.innerHTML=empty('گزارش مغایرت قیمت در API فعلی وجود ندارد.')}
+function closePrice(){return}
+
 function renderCalendarLots(){const el=document.getElementById('calendarLots');if(!el)return;const q=(document.getElementById('calendarMonth')?.value||'').replaceAll('-','/');const rows=db.lots.filter(x=>!q||x.date.startsWith(q));el.innerHTML=rows.length?rows.map(x=>`<div class="data-card"><div class="main"><b>${esc(x.productName)}</b><small>تاریخ انقضا: ${esc(x.date)} · تعداد: ${fa(x.qty)}</small></div><span class="tag">ثبت‌شده</span></div>`).join(''):empty('در این ماه سری انقضایی ثبت نشده است.')}
+function renderServerTasks(){const el=document.getElementById('serverTasksList');if(!el)return;el.innerHTML=serverTasks.length?serverTasks.map(t=>`<div class="data-card"><div class="main"><b>${esc(t.title||'وظیفه')}</b><small>${persianDate(t.task_date)} · ${esc(t.shift_type==='morning'?'صبح':t.shift_type==='evening'?'عصر':t.shift_type||'—')} · ${esc(t.assigned_name||'وظیفه شیفتی')}</small></div><span class="tag">${Number(t.done)?'انجام‌شده':'در انتظار'}</span></div>`).join(''):empty('در بازه فعلی وظیفه‌ای برای حساب شما ثبت نشده است.')}
+function renderServerShifts(){const el=document.getElementById('serverShiftsList');if(!el)return;el.innerHTML=serverShifts.length?serverShifts.map(x=>`<div class="data-card"><div class="main"><b>${persianDate(x.shift_date)} · ${esc(x.shift_type==='morning'?'صبح':x.shift_type==='evening'?'عصر':x.shift_type==='full_day'?'تمام‌روز':x.shift_type||'')}</b><small>${(x.members||[]).map(m=>esc(m.display_name)).join('، ')||'بدون عضو ثبت‌شده'}</small></div><span class="tag">سرور</span></div>`).join(''):empty('شیفتی در بازه سه‌ماهه دریافت نشد.')}
 function renderHistory(){const el=document.getElementById('historyList');if(!el)return;el.innerHTML=db.history.length?db.history.map(x=>`<div class="data-card"><div class="main"><b>${esc(x.action)}</b><small>${esc(x.detail)} · ${esc(x.date)}</small></div></div>`).join(''):empty('هنوز فعالیتی ثبت نشده است.')}
 function addPersonal(type){const config={reminders:['یادآور جدید','عنوان یادآور','زمان (مثلاً ۱۸:۳۰)'],tasks:['کار جدید','عنوان کار','موعد (اختیاری)'],goals:['هدف جدید','عنوان هدف','توضیحات']}[type];openModal(config[0],`${field(config[1],'title')}${field(config[2],'extra')}${type==='reminders'?field('تاریخ (شمسی)','date','۱۴۰۵/۰۹/۰۱'):''}<div class="btn-row"><button class="btn" onclick="savePersonal('${type}')">ثبت</button></div>`)}
 function savePersonal(type){const f=formData();if(!f.title){alert('عنوان را وارد کنید.');return}db[type].push({id:uid(),title:f.title,extra:f.extra||'',date:f.date||'',done:false});log('ثبت '+({reminders:'یادآور',tasks:'کار روزانه',goals:'هدف'}[type]),f.title);closeModal();saveDB()}
@@ -591,12 +596,13 @@ function toggleDone(type,id){const x=db[type].find(x=>x.id===id);if(x){x.done=!x
 function openPersonal(type){const names={reminders:'یادآورهای من',tasks:'کارهای روزانه',goals:'هدف‌های من','personal-calendar':'تقویم شخصی'};if(type==='personal-calendar'){openModal('تقویم شخصی',`<p class="desc">برنامه‌های شخصی ثبت‌شده در این دستگاه</p>${[...db.reminders,...db.tasks].length?[...db.reminders,...db.tasks].map(x=>`<div class="data-card"><div class="main"><b>${esc(x.title)}</b><small>${esc(x.date||x.extra||'بدون موعد')}</small></div></div>`).join(''):empty('برنامه‌ای ثبت نشده است.')}`);return}const arr=db[type],add=type==='reminders'?'یادآور جدید':type==='tasks'?'کار جدید':'هدف جدید';openModal(names[type],`<div class="btn-row"><button class="btn" onclick="closeModal();addPersonal('${type}')">＋ ${add}</button></div><div class="data-list">${arr.length?arr.map(x=>`<div class="data-card"><div class="main"><b>${esc(x.title)}</b><small>${esc(x.extra||x.date||'بدون جزئیات')}</small></div><div class="actions"><button class="icon-btn" onclick="toggleDone('${type}','${x.id}');openPersonal('${type}')">${x.done?'بازگردانی':'انجام شد'}</button><button class="icon-btn danger" onclick="removePersonal('${type}','${x.id}')">حذف</button></div></div>`).join(''):empty('هنوز موردی ثبت نشده است.')}</div>`)}
 function removePersonal(type,id){if(!confirm('حذف شود؟'))return;const x=db[type].find(x=>x.id===id);db[type]=db[type].filter(x=>x.id!==id);if(x)log('حذف مورد شخصی',x.title);saveDB();openPersonal(type)}
 function renderPersonal(){const tasks=db.tasks,done=tasks.filter(x=>x.done).length,pct=tasks.length?Math.round(done/tasks.length*100):0;const p=document.getElementById('personalPercent'),bar=document.getElementById('personalProgress'),txt=document.getElementById('personalProgressText'),tl=document.getElementById('personalTimeline');if(p)p.textContent=fa(pct)+'٪';if(bar)bar.style.width=pct+'%';if(txt)txt.textContent=`${fa(done)} کار از ${fa(tasks.length)} کار انجام شده`;if(tl){const items=[...db.reminders,...db.tasks].slice(-8).reverse();tl.innerHTML=items.length?items.map(x=>`<div class="timeline-item"><i class="timeline-dot"></i><div><b>${esc(x.title)}</b><small>${esc(x.date||x.extra||'بدون زمان')} · ${x.done?'انجام شده':'در انتظار'}</small></div></div>`).join(''):empty('هنوز برنامه‌ای ثبت نشده است.') }}
-function renderHome(){const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=fa(v)};set('statProducts',db.products.length);set('statAlerts',db.lots.length);set('statPrices',db.prices.filter(x=>x.status==='باز').length);set('statLots',db.lots.length);set('statReminders',db.reminders.filter(x=>!x.done).length);const n=db.tasks.length,d=db.tasks.filter(x=>x.done).length;set('statProgress',(n?Math.round(d/n*100):0)+'٪')}
+function renderHome(){const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=fa(v)};set('statProducts',db.products.length);set('statAlerts',db.lots.filter(x=>{const d=x.isoDate?new Date(x.isoDate+'T12:00:00'):null;return d&&d.getTime()-Date.now()<30*86400000}).length);set('statPrices',serverTasks.length);set('statLots',serverShifts.length);set('statReminders',db.reminders.filter(x=>!x.done).length);const n=db.tasks.length,d=db.tasks.filter(x=>x.done).length;set('statProgress',(n?Math.round(d/n*100):0)+'٪')}
 function renderProfile(){const el=document.querySelector('.profile-name');if(el)el.textContent=db.profile.name||'کاربر';const work=document.querySelector('.profile-role');if(work)work.textContent=db.profile.role||'کاربر'}
-function renderAll(){renderProducts();renderLots();renderLedger();renderPrices();renderCalendarLots();renderHistory();renderPersonal();renderHome();renderProfile();const light=db.settings.theme==='light';document.body.classList.toggle('light',light);const t=document.getElementById('themeValue');if(t)t.textContent=light?'روشن ‹':'تاریک ‹'}
+function renderAll(){renderProducts();renderLots();renderLedger();renderPrices();renderCalendarLots();renderHistory();renderServerTasks();renderServerShifts();renderPersonal();renderHome();renderProfile();const light=db.settings.theme==='light';document.body.classList.toggle('light',light);const t=document.getElementById('themeValue');if(t)t.textContent=light?'روشن ‹':'تاریک ‹'}
 document.addEventListener('click',e=>{const a=e.target.closest('[data-action]');if(a){const act=a.dataset.action;if(['reminders','tasks','goals','personal-calendar'].includes(act))openPersonal(act);else profileAction(act);return}const setting=e.target.closest('[data-setting]');if(setting)settingAction(setting.dataset.setting)});
-function profileAction(act){if(act==='profile-info'){openModal('اطلاعات شخصی',`${field('نام','name',db.profile.name)}${field('شماره تماس','phone',db.profile.phone)}<div class="btn-row"><button class="btn" onclick="const f=formData();db.profile.name=f.name;db.profile.phone=f.phone;log('ویرایش پروفایل',f.name);closeModal();saveDB()">ذخیره</button></div>`)}else if(act==='work'){openModal('اطلاعات محل کار',`${field('نام مجموعه','workplace',db.profile.workplace)}<div class="btn-row"><button class="btn" onclick="db.profile.workplace=formData().workplace;log('ویرایش محل کار',db.profile.workplace);closeModal();saveDB()">ذخیره</button></div>`)}else if(act==='activity'){go('history')}else if(act==='security'){openModal('امنیت و حریم خصوصی',`<p class="desc">اطلاعات این نسخه فقط در حافظه محلی همین دستگاه ذخیره می‌شود. برای جلوگیری از دسترسی دیگران، قفل صفحه گوشی را فعال نگه دارید.</p><button class="btn" onclick="exportBackup()">خروجی پشتیبان اطلاعات</button>`)}else if(act==='exit'){openModal('خروج از حساب',`<p class="desc">این نسخه آفلاین ورود حساب کاربری ندارد؛ اطلاعات محلی با خروج حذف نمی‌شود.</p><button class="btn" onclick="closeModal()">متوجه شدم</button>`)}}
-function settingAction(s){if(s==='theme'){db.settings.theme=db.settings.theme==='light'?'dark':'light';log('تغییر ظاهر برنامه',db.settings.theme==='light'?'روشن':'تاریک');saveDB()}else if(s==='update'){if(window.AndroidUpdater&&AndroidUpdater.checkForUpdate){openModal('به‌روزرسانی برنامه','<p class="desc">در حال آماده‌سازی بررسی نسخه…</p>');AndroidUpdater.checkForUpdate()}else{openModal('به‌روزرسانی برنامه','<p class="desc">بررسی و نصب خودکار نسخه جدید فقط داخل نسخه اندروید فعال است.</p>')}}else if(s==='about')openModal('درباره Reminder','<p class="desc">Reminder WebView Preview · نسخه 3.0.0<br>نسخه آزمایشی آفلاین با ذخیره‌سازی محلی</p>');else if(s==='language')openModal('زبان برنامه','<p class="desc">در این نسخه فقط زبان فارسی فعال است.</p>');else if(s==='calendar')openModal('نوع تقویم','<p class="desc">تاریخ‌های این نسخه با قالب شمسی ثبت می‌شوند.</p>');else if(s==='notifications'||s==='personal-notifications'||s==='expiry-notifications')openModal('اعلان‌ها','<p class="desc">اعلان واقعی اندروید هنوز به این پیش‌نمایش متصل نشده است. این بخش در مرحله اتصال اعلان‌های بومی تکمیل می‌شود.</p>');else if(s==='help')openModal('راهنما','<p class="desc">برای شروع، ابتدا محصولات را در بانک محصولات ثبت کنید؛ سپس سری‌های انقضا، فیره و اضافه و مغایرت قیمت را اضافه کنید. اطلاعات روی همین دستگاه ذخیره می‌شوند.</p>')}
+function profileAction(act){if(act==='profile-info'){openModal('اطلاعات حساب',`<div class="kpi-line"><span>نام نمایشی</span><b>${esc(serverProfile?.display_name||db.profile.name)}</b></div><div class="kpi-line"><span>نام کاربری</span><b>${esc(serverProfile?.username||'—')}</b></div><div class="kpi-line"><span>نقش</span><b>${esc(db.profile.role)}</b></div><p class="setting-note">مشخصات حساب از سرور خوانده می‌شود و از داخل برنامه قابل ویرایش نیست.</p>`)}else if(act==='work'){openModal('اطلاعات محل کار',`<p class="desc">اطلاعات محل کار از سرویس فعلی سرور دریافت نمی‌شود.</p>`)}else if(act==='activity'){go('history')}else if(act==='security'){openModal('امنیت و حریم خصوصی',`<p class="desc">توکن ورود به‌صورت رمزگذاری‌شده در حافظه امن اندروید نگهداری می‌شود. اطلاعات شخصی روی گوشی می‌ماند و داده‌های فروشگاه فقط از سرور خوانده می‌شوند.</p><button class="btn" onclick="exportBackup()">خروجی پشتیبان اطلاعات</button>`)}else if(act==='exit'){openModal('خروج از حساب',`<p class="desc">با خروج، نشست ذخیره‌شده روی این دستگاه پاک می‌شود. یادآورها و اطلاعات شخصی محلی شما حذف نخواهند شد.</p><button class="btn" onclick="closeModal();if(window.AndroidStore)AndroidStore.logout();else showLogin()">خروج امن</button>`)}}
+function settingAction(s){if(s==='theme'){db.settings.theme=db.settings.theme==='light'?'dark':'light';log('تغییر ظاهر برنامه',db.settings.theme==='light'?'روشن':'تاریک');saveDB()}else if(s==='update'){if(window.AndroidUpdater&&AndroidUpdater.checkForUpdate){openModal('به‌روزرسانی برنامه','<p class="desc">در حال آماده‌سازی بررسی نسخه…</p>');AndroidUpdater.checkForUpdate()}else{openModal('به‌روزرسانی برنامه','<p class="desc">بررسی و نصب خودکار نسخه جدید فقط داخل نسخه اندروید فعال است.</p>')}}else if(s==='about')openModal('درباره Reminder','<p class="desc">Reminder · نسخه 3.1.0<br>اتصال خواندنی به سرور فروشگاه و ذخیره محلی اطلاعات شخصی</p>');else if(s==='language')openModal('زبان برنامه','<p class="desc">در این نسخه فقط زبان فارسی فعال است.</p>');else if(s==='calendar')openModal('نوع تقویم','<p class="desc">تاریخ‌های این نسخه با قالب شمسی ثبت می‌شوند.</p>');else if(s==='notifications'||s==='personal-notifications'||s==='expiry-notifications')openModal('اعلان‌ها','<p class="desc">اعلان واقعی اندروید هنوز به این پیش‌نمایش متصل نشده است. این بخش در مرحله اتصال اعلان‌های بومی تکمیل می‌شود.</p>');else if(s==='help')openModal('راهنما','<p class="desc">برای دریافت اطلاعات فروشگاه با نام کاربری و رمز عبور وارد شوید. محصولات، انقضاها، وظایف و شیفت‌ها از سرور خوانده می‌شوند. یادآورها و هدف‌های شخصی فقط روی همین دستگاه ذخیره می‌شوند.</p>')}
+window.handleAndroidBack=function(){const modal=document.getElementById('modalBackdrop');if(modal?.classList.contains('show')){closeModal();return true}const active=document.querySelector('.page.active');if(active&&['products','newlot','calendar','ledger','price','history','serverTasks','serverShifts'].includes(active.id)){go('store');return true}if(active&&active.id!=='home'){go('home');return true}return false};
 window.onReminderUpdateStatus=function(status,message){
  const body=document.getElementById('modalBody');
  if(!body)return;
@@ -610,7 +616,9 @@ window.onReminderUpdateStatus=function(status,message){
 };
 function exportBackup(){const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='reminder-backup.json';a.click();URL.revokeObjectURL(url)}
 document.getElementById('productSearch')?.addEventListener('input',renderProducts);document.getElementById('calendarMonth')?.addEventListener('input',renderCalendarLots);
+db.products=[];db.lots=[];db.ledger=[];db.prices=[];
 renderAll();
+if(window.AndroidStore&&AndroidStore.hasSession()){showApp();refreshServerData()}else{showLogin()}
 
 </script>
 </body>
