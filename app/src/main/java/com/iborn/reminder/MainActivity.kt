@@ -21,7 +21,7 @@ class MainActivity : Activity() {
         window.decorView.systemUiVisibility = 0
 
         updater = UpdateBridge(this) { script -> runOnUiThread { if (::webView.isInitialized) webView.evaluateJavascript(script, null) } }
-        storeBridge = StoreBridge(this) { script -> runOnUiThread { if (::webView.isInitialized) webView.evaluateJavascript(script, null) } }
+        storeBridge = StoreBridge(this) { script -> if (::webView.isInitialized) webView.evaluateJavascript(script, null) }
 
         webView = WebView(this).apply {
             setBackgroundColor(Color.rgb(8, 13, 12))
