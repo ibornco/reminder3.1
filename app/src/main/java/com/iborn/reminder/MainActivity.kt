@@ -11,6 +11,7 @@ import android.webkit.WebViewClient
 class MainActivity : Activity() {
     private lateinit var webView: WebView
     private lateinit var updater: UpdateBridge
+    private lateinit var storeBridge: StoreBridge
 
     @Suppress("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,11 +20,8 @@ class MainActivity : Activity() {
         window.navigationBarColor = Color.rgb(8, 13, 12)
         window.decorView.systemUiVisibility = 0
 
-        updater = UpdateBridge(this) { script ->
-            runOnUiThread {
-                if (::webView.isInitialized) webView.evaluateJavascript(script, null)
-            }
-        }
+        updater = UpdateBridge(this) { script -> runOnUiThread { if (::webView.isInitialized) webView.evaluateJavascript(script, null) } }
+        storeBridge = StoreBridge(this) { script -> if (::webView.isInitialized) webView.evaluateJavascript(script, null) }
 
         webView = WebView(this).apply {
             setBackgroundColor(Color.rgb(8, 13, 12))
@@ -43,6 +41,7 @@ class MainActivity : Activity() {
             isHorizontalScrollBarEnabled = false
             overScrollMode = View.OVER_SCROLL_NEVER
             addJavascriptInterface(updater, "AndroidUpdater")
+            addJavascriptInterface(storeBridge, "AndroidStore")
             webViewClient = WebViewClient()
             webChromeClient = WebChromeClient()
             loadUrl("file:///android_asset/index.html")
@@ -52,18 +51,23 @@ class MainActivity : Activity() {
 
     @Deprecated("Deprecated in Android")
     override fun onBackPressed() {
-        if (::webView.isInitialized && webView.canGoBack()) webView.goBack()
-        else super.onBackPressed()
+        if (::webView.isInitialized) {
+            webView.evaluateJavascript("window.handleAndroidBack ? window.handleAndroidBack() : false") { handled ->
+                if (handled != "true") finish()
+            }
+        } else finish()
     }
 
     override fun onDestroy() {
         if (::webView.isInitialized) {
             webView.removeJavascriptInterface("AndroidUpdater")
+            webView.removeJavascriptInterface("AndroidStore")
             webView.stopLoading()
             webView.loadUrl("about:blank")
             webView.destroy()
         }
         if (::updater.isInitialized) updater.dispose()
+        if (::storeBridge.isInitialized) storeBridge.dispose()
         super.onDestroy()
     }
 }
